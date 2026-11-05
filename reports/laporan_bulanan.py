@@ -1,17 +1,23 @@
-from models.transaksi import Pemasukan, Pengeluaran
-from services.keuangan_service import KeuanganService
+from models import Pemasukan, Pengeluaran
+from services import KeuanganService
+
+
+def format_rupiah(angka: float) -> str:
+    return "Rp" + f"{angka:,.0f}".replace(",", ".")
+
 
 class BarisRekap:
     """Satu baris rekap: total per kategori."""
 
-    def __init__(self, nama_kategori: str, jenis: str, total: int):
+    def __init__(self, nama_kategori: str, jenis: str, total: float):
         self.nama_kategori = nama_kategori
         self.jenis = jenis
         self.total = total
 
     def __str__(self):
         jenis = self.jenis.upper()
-        return f"[{jenis}] {self.nama_kategori} | Total: Rp{self.total:,}"
+        return f"[{jenis}] {self.nama_kategori} | Total: {format_rupiah(self.total)}"
+
 
 class LaporanBulanan:
     """Laporan keuangan untuk satu bulan tertentu."""
@@ -29,6 +35,12 @@ class LaporanBulanan:
         return [
             t for t in semua
             if t.tanggal.month == self.bulan and t.tanggal.year == self.tahun
+        ]
+
+    def transaksi_per_kategori(self, nama_kategori: str):
+        return [
+            t for t in self.transaksi_bulan_ini()
+            if t.kategori.nama.lower() == nama_kategori.lower()
         ]
 
     def total_pemasukan(self):
@@ -55,7 +67,7 @@ class LaporanBulanan:
         saldo = self.total_pemasukan() - self.total_pengeluaran()
         return (
             f"Laporan {self.bulan}/{self.tahun} | "
-            f"Pemasukan: Rp{self.total_pemasukan():,} | "
-            f"Pengeluaran: Rp{self.total_pengeluaran():,} | "
-            f"Saldo: Rp{saldo:,}"
+            f"Pemasukan: {format_rupiah(self.total_pemasukan())} | "
+            f"Pengeluaran: {format_rupiah(self.total_pengeluaran())} | "
+            f"Saldo: {format_rupiah(saldo)}"
         )
