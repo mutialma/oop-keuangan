@@ -4,12 +4,12 @@ from models import Kategori
 from reports import LaporanBulanan
 from services import KeuanganService
 
-# 1. Buat kategori
+
 gaji = Kategori("Gaji")
 makan = Kategori("Makan", 500_000)
 transport = Kategori("Transport", 200_000)
 
-# 2. Catat transaksi lewat service
+
 service = KeuanganService()
 service.catat_pemasukan(5_000_000, gaji, date(2026, 11, 1))
 service.catat_pengeluaran(35_000, makan, date(2026, 11, 2))
@@ -22,14 +22,14 @@ for transaksi in service:
 print("\n=== Saldo ===")
 print(service)
 
-# 3. Contoh input yang salah
+
 print("\n=== Contoh Error ===")
 try:
     service.catat_pengeluaran(10_000_000, makan)
 except ValueError as e:
     print("Gagal:", e)
 
-# 4. Laporan bulanan
+
 laporan = LaporanBulanan(service, 11, 2026)
 
 print("\n=== Laporan Bulanan ===")
