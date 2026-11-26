@@ -1,14 +1,3 @@
-"""GUI CustomTkinter untuk mini app keuangan (oop-keuangan).
-
-Letakkan file ini di folder utama project (sejajar main.py, models/, services/,
-reports/), lalu jalankan:
-
-    pip install customtkinter
-    python gui.py
-
-Logika bisnis TIDAK diubah: GUI hanya memanggil KeuanganService, Kategori,
-Pemasukan/Pengeluaran, dan LaporanBulanan yang sudah ada.
-"""
 from datetime import date, datetime
 from tkinter import messagebox, ttk
 
@@ -22,10 +11,6 @@ from services import KeuanganService
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("blue")
 
-
-# --------------------------------------------------------------------------
-# Helper
-# --------------------------------------------------------------------------
 def parse_rupiah(teks: str, minimum: int = 1) -> int:
     """'1.500.000' / '1500000' -> int. Error jika bukan angka atau < minimum."""
     bersih = teks.strip().replace(".", "").replace(",", "")
@@ -92,10 +77,6 @@ def kartu(master, judul: str):
     nilai.pack(anchor="w", padx=14, pady=(0, 10))
     return frame, nilai
 
-
-# --------------------------------------------------------------------------
-# Aplikasi utama
-# --------------------------------------------------------------------------
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -161,10 +142,6 @@ class App(ctk.CTk):
         for frame in self.halaman.values():
             frame.refresh()
 
-
-# --------------------------------------------------------------------------
-# Halaman 1: catat transaksi + tambah kategori
-# --------------------------------------------------------------------------
 class CatatPage(ctk.CTkFrame):
     def __init__(self, app: App):
         super().__init__(app, fg_color="transparent")
@@ -250,10 +227,6 @@ class CatatPage(ctk.CTkFrame):
         if self.menu_kategori.get() not in nilai:
             self.menu_kategori.set(nilai[0])
 
-
-# --------------------------------------------------------------------------
-# Halaman 2: daftar transaksi + saldo
-# --------------------------------------------------------------------------
 class DaftarPage(ctk.CTkFrame):
     def __init__(self, app: App):
         super().__init__(app, fg_color="transparent")
@@ -286,10 +259,6 @@ class DaftarPage(ctk.CTkFrame):
         ]
         self.tabel.isi(baris)
 
-
-# --------------------------------------------------------------------------
-# Halaman 3: laporan bulanan
-# --------------------------------------------------------------------------
 class LaporanPage(ctk.CTkFrame):
     def __init__(self, app: App):
         super().__init__(app, fg_color="transparent")
@@ -357,7 +326,6 @@ class LaporanPage(ctk.CTkFrame):
         self.nilai_keluar.configure(text=format_rupiah(keluar))
         self.nilai_saldo.configure(text=format_rupiah(masuk - keluar))
 
-        # rekap per kategori (BarisRekap) + status anggaran di sisi GUI
         baris = []
         for r in laporan.rekap_per_kategori():
             kat = self.app.kategori.get(r.nama_kategori)
