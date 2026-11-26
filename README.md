@@ -1,10 +1,10 @@
-# 💰 DompetKu — Aplikasi Keuangan Pribadi
+#  DompetKu — Aplikasi Keuangan Pribadi
 
 Aplikasi keuangan pribadi berbasis Python yang dibangun dengan prinsip **Object-Oriented Programming (OOP)**. Tersedia dalam dua mode: antarmuka grafis (GUI) dan antarmuka terminal (CLI).
 
 ---
 
-## 📸 Fitur Utama
+##  Fitur Utama
 
 | Fitur | Keterangan |
 |---|---|
@@ -152,7 +152,7 @@ File [`tests/test_keuangan_service.py`](tests/test_keuangan_service.py) mencakup
 
 ---
 
-## 📦 Dependensi
+##  Dependensi
 
 | Package | Versi Minimum | Kegunaan |
 |---|---|---|
@@ -162,6 +162,6 @@ Tkinter sudah tersedia bawaan di instalasi Python standar (tidak perlu install t
 
 ---
 
-## 📄 Lisensi
+##  Lisensi
 
 Proyek ini dibuat untuk keperluan tugas akademis mata kuliah **Pemrograman Berorientasi Objek**.
