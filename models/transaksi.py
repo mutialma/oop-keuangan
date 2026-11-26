@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from datetime import date
 
 from .kategori import Kategori
 
+
 class Transaksi(ABC):
 
-    def __init__(self, id: int, jumlah: float, tanggal: date, kategori: Kategori):
+    def __init__(self, id: int, jumlah: float, tanggal: date, kategori: Kategori) -> None:
         if jumlah <= 0:
             raise ValueError("Jumlah transaksi harus lebih besar dari nol.")
         if not isinstance(kategori, Kategori):
@@ -53,3 +56,4 @@ class Pengeluaran(Transaksi):
 
     def jenis(self) -> str:
         return "Pengeluaran"
+

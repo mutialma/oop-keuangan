@@ -1,11 +1,14 @@
-from datetime import date
+from __future__ import annotations
 
-from models import Pemasukan, Pengeluaran
+from datetime import date
+from typing import Iterator
+
+from models import Kategori, Pemasukan, Pengeluaran, Transaksi
 
 
 class KeuanganService:
-    def __init__(self):
-        self._daftar_transaksi = []
+    def __init__(self) -> None:
+        self._daftar_transaksi: list[Transaksi] = []
 
     def _id_baru(self) -> int:
         """Menghasilkan ID unik berikutnya (selalu lebih besar dari ID terbesar yang ada)."""
@@ -13,19 +16,19 @@ class KeuanganService:
             return 1
         return max(t.id for t in self._daftar_transaksi) + 1
 
-    def catat_pemasukan(self, jumlah: float, kategori, tanggal: date = None) -> Pemasukan:
+    def catat_pemasukan(self, jumlah: float, kategori: Kategori, tanggal: date | None = None) -> Pemasukan:
         transaksi = Pemasukan(self._id_baru(), jumlah, tanggal or date.today(), kategori)
         self._daftar_transaksi.append(transaksi)
         return transaksi
 
-    def catat_pengeluaran(self, jumlah: float, kategori, tanggal: date = None) -> Pengeluaran:
+    def catat_pengeluaran(self, jumlah: float, kategori: Kategori, tanggal: date | None = None) -> Pengeluaran:
         transaksi = Pengeluaran(self._id_baru(), jumlah, tanggal or date.today(), kategori)
         if transaksi.jumlah > self.hitung_saldo():
             raise ValueError("Saldo tidak cukup")
         self._daftar_transaksi.append(transaksi)
         return transaksi
 
-    def cari_by_id(self, id_transaksi: int):
+    def cari_by_id(self, id_transaksi: int) -> Transaksi | None:
         """Mengembalikan objek transaksi berdasarkan ID, atau None jika tidak ditemukan."""
         for t in self._daftar_transaksi:
             if t.id == id_transaksi:
@@ -52,8 +55,13 @@ class KeuanganService:
 
         self._daftar_transaksi = [t for t in self._daftar_transaksi if t.id != id_transaksi]
 
-    def edit_transaksi(self, id_transaksi: int, jumlah: float = None,
-                       kategori=None, tanggal: date = None) -> object:
+    def edit_transaksi(
+        self,
+        id_transaksi: int,
+        jumlah: float | None = None,
+        kategori: Kategori | None = None,
+        tanggal: date | None = None,
+    ) -> Transaksi:
         """Mengedit jumlah, kategori, dan/atau tanggal transaksi berdasarkan ID.
 
         Transaksi yang sudah ada diganti dengan objek baru bertipe sama.
@@ -83,16 +91,17 @@ class KeuanganService:
     def hitung_saldo(self) -> float:
         return sum(t.nilai_bersih() for t in self._daftar_transaksi)
 
-    def tampilkan_semua(self) -> list:
+    def tampilkan_semua(self) -> list[Transaksi]:
         return list(self._daftar_transaksi)
 
     def __len__(self) -> int:
         return len(self._daftar_transaksi)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Transaksi]:
         return iter(self._daftar_transaksi)
 
     def __str__(self) -> str:
         saldo = f"{self.hitung_saldo():,.0f}".replace(",", ".")
         return f"Saldo: Rp{saldo} ({len(self)} transaksi)"
+
 

@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+
 class Kategori:
 
-    def __init__(self, nama: str, anggaran: float = 0.0):
+    def __init__(self, nama: str, anggaran: float = 0.0) -> None:
         self.nama = nama
         self.anggaran = anggaran
 
@@ -37,3 +40,4 @@ class Kategori:
 
     def __repr__(self) -> str:
         return f"Kategori(nama={self.nama!r}, anggaran={self.anggaran})"
+
