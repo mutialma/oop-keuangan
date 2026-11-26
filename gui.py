@@ -715,6 +715,151 @@ class TransaksiDialog(ctk.CTkToplevel):
         self.app.refresh_semua()
 
 
+# -------------------------------------------------------- dialog edit transaksi
+class EditDialog(ctk.CTkToplevel):
+    """Dialog modal untuk mengedit jumlah, kategori, dan tanggal transaksi yang sudah ada."""
+
+    def __init__(self, app: App, transaksi):
+        super().__init__(app)
+        self.app = app
+        self.transaksi = transaksi
+        self.title(f"Edit Transaksi #{transaksi.id}")
+        self.configure(fg_color=PALET["bg"])
+        lebar, tinggi = 480, 540
+        x = app.winfo_rootx() + (app.winfo_width() - lebar) // 2
+        y = app.winfo_rooty() + (app.winfo_height() - tinggi) // 2
+        self.geometry(f"{lebar}x{tinggi}+{max(x, 0)}+{max(y, 0)}")
+        self.resizable(False, False)
+        self.transient(app)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        card = Card(self)
+        card.grid(row=0, column=0, sticky="nsew", padx=16, pady=16)
+        card.grid_columnconfigure(0, weight=1)
+
+        # Judul + badge jenis
+        judul_row = ctk.CTkFrame(card, fg_color="transparent")
+        judul_row.grid(row=0, column=0, sticky="ew", padx=24, pady=(22, 4))
+        judul_row.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(judul_row, text=f"Edit Transaksi #{transaksi.id}",
+                     font=font(18, True), text_color=PALET["text"]).grid(row=0, column=0, sticky="w")
+        is_masuk = transaksi.jenis() == "Pemasukan"
+        badge_warna = PALET["emerald"] if is_masuk else PALET["rose"]
+        badge = ctk.CTkFrame(judul_row, fg_color=badge_warna, corner_radius=8)
+        badge.grid(row=0, column=1, sticky="e")
+        ctk.CTkLabel(badge, text=transaksi.jenis(), font=font(11, True),
+                     text_color="#06231c" if is_masuk else "#2b0610").pack(padx=10, pady=4)
+
+        ctk.CTkLabel(card, text=f"Jenis transaksi tidak dapat diubah.",
+                     font=font(11), text_color=PALET["muted"]).grid(
+            row=1, column=0, sticky="w", padx=24, pady=(0, 16))
+
+        # Input Jumlah
+        ctk.CTkLabel(card, text="JUMLAH", font=font(10, True), text_color=PALET["muted"]).grid(
+            row=2, column=0, sticky="w", padx=24, pady=(0, 4))
+        wrap = ctk.CTkFrame(card, fg_color=PALET["card_alt"], border_width=1,
+                            border_color=PALET["border"], corner_radius=12)
+        wrap.grid(row=3, column=0, sticky="ew", padx=24)
+        wrap.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(wrap, text="Rp", font=font(18, True), text_color=PALET["muted"]).grid(
+            row=0, column=0, padx=(16, 4), pady=8)
+        self.entry_jumlah = ctk.CTkEntry(
+            wrap, height=44, border_width=0, fg_color="transparent",
+            font=font(22, True), text_color=PALET["text"],
+            placeholder_text_color=PALET["muted"])
+        self.entry_jumlah.insert(0, str(int(transaksi.jumlah)))
+        self.entry_jumlah.grid(row=0, column=1, sticky="ew", padx=(0, 12))
+
+        # Quick chips
+        chips = ctk.CTkFrame(card, fg_color="transparent")
+        chips.grid(row=4, column=0, sticky="ew", padx=24, pady=(8, 16))
+        for label, nominal in [("+25rb", 25_000), ("+50rb", 50_000), ("+100rb", 100_000)]:
+            tombol_chip(chips, label, lambda n=nominal: self._tambah_nominal(n)).pack(side="left", padx=(0, 6))
+        ctk.CTkButton(
+            chips, text="Reset", width=58, height=30, corner_radius=15, font=font(11),
+            fg_color="transparent", border_width=1, border_color=PALET["border"],
+            hover_color=PALET["nav_hover"], text_color=PALET["muted"],
+            command=lambda: (self.entry_jumlah.delete(0, "end"),
+                             self.entry_jumlah.insert(0, str(int(transaksi.jumlah)))),
+        ).pack(side="left")
+
+        # Input Kategori
+        ctk.CTkLabel(card, text="KATEGORI", font=font(10, True), text_color=PALET["muted"]).grid(
+            row=5, column=0, sticky="w", padx=24, pady=(0, 4))
+        self.menu_kategori = option(card, values=list(app.kategori))
+        self.menu_kategori.set(transaksi.kategori.nama
+                               if transaksi.kategori.nama in app.kategori
+                               else list(app.kategori)[0])
+        self.menu_kategori.grid(row=6, column=0, sticky="ew", padx=24, pady=(0, 16))
+
+        # Input Tanggal
+        ctk.CTkLabel(card, text="TANGGAL (YYYY-MM-DD)", font=font(10, True), text_color=PALET["muted"]).grid(
+            row=7, column=0, sticky="w", padx=24, pady=(0, 4))
+        tgl = ctk.CTkFrame(card, fg_color="transparent")
+        tgl.grid(row=8, column=0, sticky="ew", padx=24, pady=(0, 20))
+        tgl.grid_columnconfigure(0, weight=1)
+        self.entry_tanggal = entry(tgl)
+        self.entry_tanggal.insert(0, transaksi.tanggal.isoformat())
+        self.entry_tanggal.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        ctk.CTkButton(
+            tgl, text="Hari Ini", width=84, height=40, corner_radius=10, font=font(11, True),
+            fg_color=PALET["chip"], hover_color=PALET["chip_hover"], text_color=PALET["text"],
+            command=lambda: (self.entry_tanggal.delete(0, "end"),
+                             self.entry_tanggal.insert(0, date.today().isoformat())),
+        ).grid(row=0, column=1)
+
+        # Tombol Simpan
+        self.btn_simpan = ctk.CTkButton(
+            card, text="Simpan Perubahan", height=48, corner_radius=12, font=font(14, True),
+            fg_color=PALET["primary"], hover_color=PALET["primary_hover"],
+            command=self.simpan,
+        )
+        self.btn_simpan.grid(row=9, column=0, sticky="ew", padx=24, pady=(0, 10))
+
+        self.status = StatusBar(card, wrap=400)
+        self.status.grid(row=10, column=0, sticky="ew", padx=24, pady=(0, 18))
+
+        self.bind("<Return>", lambda _e: self.simpan())
+        self.bind("<Escape>", lambda _e: self.destroy())
+        self.after(200, self._fokus)
+
+    def _fokus(self):
+        try:
+            self.grab_set()
+            self.entry_jumlah.focus()
+            self.entry_jumlah.icursor("end")
+        except Exception:
+            pass
+
+    def _tambah_nominal(self, tambahan: int):
+        teks = self.entry_jumlah.get().strip()
+        try:
+            sekarang = parse_rupiah(teks, minimum=0) if teks else 0
+        except ValueError:
+            sekarang = 0
+        self.entry_jumlah.delete(0, "end")
+        self.entry_jumlah.insert(0, str(sekarang + tambahan))
+
+    def simpan(self):
+        try:
+            jumlah = parse_rupiah(self.entry_jumlah.get())
+            tanggal = parse_tanggal(self.entry_tanggal.get())
+            kategori = self.app.kategori[self.menu_kategori.get()]
+            hasil = self.app.service.edit_transaksi(
+                self.transaksi.id, jumlah=jumlah, kategori=kategori, tanggal=tanggal
+            )
+        except (ValueError, TypeError) as e:
+            self.status.tampil(f"Gagal: {e}", error=True)
+            return
+        self.app.refresh_semua()
+        self.destroy()
+        # Tampilkan konfirmasi di halaman transaksi
+        halaman = self.app.halaman.get("transaksi")
+        if halaman:
+            halaman.status.tampil(f"✓  Transaksi #{hasil.id} berhasil diperbarui.")
+
+
 # ------------------------------------------------------------- dashboard
 class DashboardPage(ctk.CTkFrame):
     def __init__(self, app: App):
@@ -878,9 +1023,31 @@ class TransaksiPage(ctk.CTkFrame):
         tabel_card.grid(row=2, column=0, sticky="nsew")
         tabel_card.grid_columnconfigure(0, weight=1)
         tabel_card.grid_rowconfigure(1, weight=1)
-        self.judul_tabel = ctk.CTkLabel(tabel_card, text="Riwayat Transaksi", font=font(14, True),
-                                        text_color=PALET["text"])
-        self.judul_tabel.grid(row=0, column=0, sticky="w", padx=20, pady=(16, 4))
+
+        # Baris header tabel: judul + tombol aksi
+        baris_header = ctk.CTkFrame(tabel_card, fg_color="transparent")
+        baris_header.grid(row=0, column=0, sticky="ew", padx=20, pady=(16, 4))
+        baris_header.grid_columnconfigure(0, weight=1)
+        self.judul_tabel = ctk.CTkLabel(baris_header, text="Riwayat Transaksi",
+                                        font=font(14, True), text_color=PALET["text"])
+        self.judul_tabel.grid(row=0, column=0, sticky="w")
+
+        # Tombol Edit & Hapus (aktif setelah baris dipilih)
+        aksi_frame = ctk.CTkFrame(baris_header, fg_color="transparent")
+        aksi_frame.grid(row=0, column=1, sticky="e")
+        self.btn_edit = ctk.CTkButton(
+            aksi_frame, text="✎  Edit", width=90, height=34, corner_radius=8,
+            font=font(12, True), fg_color=PALET["chip"], hover_color=PALET["primary"],
+            text_color=PALET["muted"], state="disabled", command=self._edit_terpilih,
+        )
+        self.btn_edit.pack(side="left", padx=(0, 8))
+        self.btn_hapus = ctk.CTkButton(
+            aksi_frame, text="🗑  Hapus", width=90, height=34, corner_radius=8,
+            font=font(12, True), fg_color=PALET["chip"], hover_color=PALET["rose"],
+            text_color=PALET["muted"], state="disabled", command=self._hapus_terpilih,
+        )
+        self.btn_hapus.pack(side="left")
+
         self.tabel = Tabel(
             tabel_card,
             [("ID", 60, "center"), ("Tanggal", 120, "center"), ("Jenis", 120, "center"),
@@ -888,6 +1055,65 @@ class TransaksiPage(ctk.CTkFrame):
             teks_kosong="Tidak ada transaksi yang cocok dengan filter.",
         )
         self.tabel.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 14))
+        # Aktifkan tombol aksi saat baris dipilih, nonaktifkan saat klik kosong
+        self.tabel.tree.bind("<<TreeviewSelect>>", self._on_pilih)
+        self.tabel.tree.bind("<ButtonRelease-1>", self._on_klik_tabel)
+
+        self.status = StatusBar(tabel_card, wrap=600)
+        self.status.grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 10))
+
+    def _id_terpilih(self) -> int | None:
+        """Mengembalikan ID transaksi dari baris terpilih di tabel, atau None."""
+        sel = self.tabel.tree.selection()
+        if not sel:
+            return None
+        return int(self.tabel.tree.item(sel[0], "values")[0])
+
+    def _on_pilih(self, _event=None):
+        ada = bool(self.tabel.tree.selection())
+        state = "normal" if ada else "disabled"
+        warna = PALET["muted"] if not ada else PALET["text"]
+        self.btn_edit.configure(state=state, text_color=warna)
+        self.btn_hapus.configure(state=state, text_color=warna)
+
+    def _on_klik_tabel(self, event):
+        """Batalkan seleksi jika klik di area kosong."""
+        item = self.tabel.tree.identify_row(event.y)
+        if not item:
+            self.tabel.tree.selection_remove(self.tabel.tree.selection())
+            self._on_pilih()
+
+    def _hapus_terpilih(self):
+        id_trx = self._id_terpilih()
+        if id_trx is None:
+            return
+        t = self.app.service.cari_by_id(id_trx)
+        if t is None:
+            return
+        konfirmasi = messagebox.askyesno(
+            "Konfirmasi Hapus",
+            f"Hapus transaksi #{t.id}?\n"
+            f"  {t.jenis()} · {t.kategori.nama} · {format_rupiah(t.jumlah)}\n"
+            f"  Tanggal: {t.tanggal:%d-%m-%Y}\n\n"
+            "Tindakan ini tidak dapat dibatalkan.",
+        )
+        if not konfirmasi:
+            return
+        try:
+            self.app.service.hapus_transaksi(id_trx)
+            self.status.tampil(f"✓  Transaksi #{id_trx} berhasil dihapus.")
+            self.app.refresh_semua()
+        except ValueError as e:
+            self.status.tampil(f"Gagal: {e}", error=True)
+
+    def _edit_terpilih(self):
+        id_trx = self._id_terpilih()
+        if id_trx is None:
+            return
+        t = self.app.service.cari_by_id(id_trx)
+        if t is None:
+            return
+        EditDialog(self.app, t)
 
     def refresh(self):
         semua = self.app.service.tampilkan_semua()
@@ -915,6 +1141,7 @@ class TransaksiPage(ctk.CTkFrame):
             tags.append("pemasukan" if masuk else "pengeluaran")
         self.judul_tabel.configure(text=f"Riwayat Transaksi  ·  {len(baris)} data")
         self.tabel.isi(baris, tags)
+        self._on_pilih()  # sinkronkan state tombol setelah refresh
 
 
 # -------------------------------------------------------------- kategori
