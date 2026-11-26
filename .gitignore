@@ -1,0 +1,77 @@
+
+# Python
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual Environment
+
+.venv/
+venv/
+env/
+ENV/
+.env
+
+
+# Data & Database (file persistensi lokal)
+
+*.json
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+
+# Distribution / Build
+
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+
+# Testing & Coverage
+
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+
+# IDE & Editor
+
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# OS
+
+# Windows
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# Log & Temp
+
+*.log
+*.tmp
+*.bak
+*.orig
